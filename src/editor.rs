@@ -678,7 +678,7 @@ impl Editor {
     fn stop_debug(&mut self) {
         self.clear_debug_session_process();
         self.reset_debug_editor_state_after_stop();
-        self.update_message("Debug stopped.");
+        self.update_message("Debug session finished.");
     }
 
     fn stop_debug_with_message(&mut self, message: &str) {
