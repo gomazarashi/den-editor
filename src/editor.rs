@@ -410,7 +410,7 @@ impl Editor {
                     self.start_debug();
                 }
             }
-            System(StopDebug) => self.stop_debug(),
+            System(StopDebug) => self.finish_debug_session(None),
             System(ToggleBreakpoint) => self.toggle_breakpoint(),
             System(StepOver) => self.step_over(),
             System(StepInto) => self.step_into(),
@@ -675,16 +675,10 @@ impl Editor {
         self.debug_panel.update(&self.debug_state);
     }
 
-    fn stop_debug(&mut self) {
+    fn finish_debug_session(&mut self, message: Option<&str>) {
         self.clear_debug_session_process();
         self.reset_debug_editor_state_after_stop();
-        self.update_message("Debug session finished.");
-    }
-
-    fn stop_debug_with_message(&mut self, message: &str) {
-        self.clear_debug_session_process();
-        self.reset_debug_editor_state_after_stop();
-        self.update_message(message);
+        self.update_message(message.unwrap_or("Debug session finished."));
     }
 
     fn poll_debug_events(&mut self) {
@@ -806,11 +800,7 @@ impl Editor {
             }
         }
         if should_stop {
-            if let Some(msg) = stop_message {
-                self.stop_debug_with_message(&msg);
-            } else {
-                self.stop_debug();
-            }
+            self.finish_debug_session(stop_message.as_ref().map(|s| s.as_ref()));
         } else if had_activity {
             self.status_bar.mark_redraw(true);
             self.debug_panel.update(&self.debug_state);
@@ -2210,7 +2200,7 @@ impl Editor {
 
 impl Drop for Editor {
     fn drop(&mut self) {
-        self.stop_debug();
+        self.finish_debug_session(None);
         self.terminal_pane.stop();
         let _ = Terminal::terminate();
     }
